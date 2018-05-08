@@ -21,8 +21,26 @@ contract Invoices{
         bytes32 email;
     }
 
+    address public admin;
+
     mapping (uint256 => invoice) public invoices; // mapping invoice number to invoice object
     mapping (address => user) public users; // mapping wallet/account address to user object
-    
+
+    constructor () public {
+        admin = msg.sender; 
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin);
+        _;
+    }
+
+    function createUser(address _account, bytes32 _name, bytes32 _email) public onlyAdmin{
+        require(users[_account].exists != true); // prohibit duplicate account
+        bool _exists = true;
+        users[_account] = user(_account,_exists,_name,_email);
+    }
+
+
 }
 
