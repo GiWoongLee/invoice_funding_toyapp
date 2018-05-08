@@ -58,6 +58,27 @@ contract Invoices{
         return (inv.number, inv.issuer.name, inv.debtee.name, inv.debtor.name, inv.dollarAmount, inv.etherAmount, inv.timestamp, inv.paid); 
     } 
 
+    // Function called on FundNow 
+    function fundInvoice(uint256 _number) public payable{ 
+        require(invoices[_number].exists == true); // check invoice exists
+        require(users[msg.sender].exists == true); // check user exists
+        invoice storage inv = invoices[_number];
+        require(inv.paid != true);
+        require(msg.value == inv.etherAmount); // check payment amount of ether same as invoice etherAmount
+        inv.debtee = users[msg.sender]; // change debtee to msg.sender
+    }
+
+    // Overload funciton when funder pays through admin node
+    function fundInvoice(uint256 _number, address funder) public payable onlyAdmin{
+        require(invoices[_number].exists == true); // check invoice exists
+        require(users[funder].exists == true); // check user exists
+        invoice storage inv = invoices[_number];
+        require(inv.paid != true);
+        require(msg.value == inv.etherAmount); // check payment amount of ether same as invoice etherAmount
+        inv.debtee = users[funder]; // change debtee to msg.sender
+    }
+
+
 
 }
 
