@@ -41,6 +41,23 @@ contract Invoices{
         users[_account] = user(_account,_exists,_name,_email);
     }
 
+    // Only Admin could create invoice, as there could be attack from malicious user
+    function createInvoice(uint256 _number, address _issuer, address _debtee, address _debtor, uint256 _dollarAmount, uint256 _etherAmount, uint256 _timestamp, bool _paid) public onlyAdmin{
+        require(invoices[_number].exists != true); // prohibit duplicate invoice number 
+        require(users[_issuer].exists == true); // check issuer exists
+        require(users[_debtee].exists == true); // check debtee exists
+        require(users[_debtor].exists == true); // check debtor exists
+        bool _exists = true;
+        invoices[_number] = invoice(_number,_exists,users[_issuer],users[_debtee],users[_debtee],_dollarAmount,_etherAmount,_timestamp,_paid);
+    }
+
+    // Function called on searchInvoice
+    function getInvoice(uint256 _number) public view returns (uint256 number, bytes32 issuerName, bytes32 debteeName, bytes32 debtorName, uint256 dollarAmount, uint256 etherAmount, uint256 timestamp, bool paid){
+        require(invoices[_number].exists == true); // check invoice exists
+        invoice storage inv = invoices[_number];
+        return (inv.number, inv.issuer.name, inv.debtee.name, inv.debtor.name, inv.dollarAmount, inv.etherAmount, inv.timestamp, inv.paid); 
+    } 
+
 
 }
 
