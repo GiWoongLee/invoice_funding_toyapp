@@ -35,6 +35,20 @@ contract Invoices{
         _;
     }
 
+    modifier onlyDebtee(uint256 _number) {
+        require(invoices[_number].exists == true); //check invoice exists
+        require(users[msg.sender].exists == true);  // check user exist
+        require(msg.sender == invoices[_number].debtee.account); // check msg.sender is the debtee of a invoice
+        _;
+    }
+
+    modifier onlyDebtor(uint256 _number){
+        require(invoices[_number].exists == true); //check invoice exists
+        require(users[msg.sender].exists == true);  // check user exist
+        require(msg.sender == invoices[_number].debtor.account); // check msg.sender is the debtor of a invoice
+        _;
+    }
+
     function createUser(address _account, bytes32 _name, bytes32 _email) public onlyAdmin{
         require(users[_account].exists != true); // prohibit duplicate account
         bool _exists = true;
@@ -57,6 +71,24 @@ contract Invoices{
         invoice storage inv = invoices[_number];
         return (inv.number, inv.issuer.name, inv.debtee.name, inv.debtor.name, inv.dollarAmount, inv.etherAmount, inv.timestamp, inv.paid); 
     } 
+    
+    // Function change invoice debtee. Function called on sellInvoice
+    function sellInvoice(uint256 _number) public onlyDebtee(_number){
+        invoice storage inv = invoices[_number];
+        user storage buyer = users[msg.sender];
+        // Check buyer sent ethers to debtee. Check payment amount same as etherAmount or dollarAmount
+        inv.debtee = buyer; /// change debtee to buyer
+    }
+
+    // Overload funciton when buyer sells invoice through admin node
+    function sellInvoice(uint256 _number, address _buyer) public onlyAdmin{
+        require(invoices[_number].exists == true); //check invoice exists
+        require(users[_buyer].exists == true);  // check user exist
+        invoice storage inv = invoices[_number];
+        user storage buyer = users[_buyer];
+        // Check buyer sent ethers to debtee. Check payment amount same as etherAmount or dollarAmount
+        inv.debtee = buyer; /// change debtee to buyer
+    }
 
     // Function called on FundNow 
     function fundInvoice(uint256 _number) public payable{ 
