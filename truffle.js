@@ -8,7 +8,7 @@ module.exports = {
     crowdz : {
       host : "18.144.59.112",
       port : 8545,
-      network_id : "" // 
+      network_id : "*" // match any network id
     }
   }
 }
