@@ -38,9 +38,9 @@ contract('Invoices',function(accounts){
 
         Promise.all([invoicesContract.users(issuer.account),invoicesContract.users(debtee.account),invoicesContract.users(debtor.account)])
         .then(function(users){
-            assert.equal(users[0][1],false,"Issuer exists before creation!")
-            assert.equal(users[1][1], false, "Debtee exists before creation!")
-            assert.equal(users[2][1], false, "Debtor exists before creation!")
+            assert.equal(users[0][1],"","Issuer exists before creation!")
+            assert.equal(users[1][1],"", "Debtee exists before creation!")
+            assert.equal(users[2][1],"", "Debtor exists before creation!")
         })
         .catch(function(error){
             console.log(error)
@@ -56,9 +56,9 @@ contract('Invoices',function(accounts){
         
         Promise.all([invoicesContract.users(issuer.account), invoicesContract.users(debtee.account), invoicesContract.users(debtor.account)])
         .then(function (users) {
-            assert.equal(users[0][1], true, "Issuer does not exist before creation!")
-            assert.equal(users[1][1], true, "Debtee does not exist before creation!")
-            assert.equal(users[2][1], true, "Debtor does not exist before creation!")
+            assert.equal(users[0][1], "giwoong", "Issuer does not exist before creation!")
+            assert.equal(users[1][1], "meit", "Debtee does not exist before creation!")
+            assert.equal(users[2][1], "clay", "Debtor does not exist before creation!")
         })
         .catch(function (error) {
             console.log(error)
@@ -74,8 +74,8 @@ contract('Invoices',function(accounts){
                 issuer: issuer.account,
                 debtee: issuer.account, // On creation, issuer == debtee
                 debtor: debtor.account,
-                dollarAmount: 1000,
-                etherAmount: 10,
+                dollarAmount: 2000,
+                etherAmount: 2*10**18,
                 timestamp: 1525832164563,
                 paid: false
             },
@@ -84,8 +84,8 @@ contract('Invoices',function(accounts){
                 issuer: debtee.account, // Debtee issued invoice
                 debtee: debtee.account,
                 debtor: debtor.account,
-                dollarAmount: 500,
-                etherAmount: 5,
+                dollarAmount: 100,
+                etherAmount: 10**18,
                 timestamp: 1525832164568,
                 paid: true
             }
@@ -110,21 +110,22 @@ contract('Invoices',function(accounts){
     })
 
     it('Meit funds ethers on first invoice on behalf of giwoong, who is issuer', async function () { // issuer != debtee
-        var etherAmount = 10;
+        var etherAmount = 2*10**18;
         var invoiceInfo = await invoicesContract.getInvoice(1);
         var debteeName = invoiceInfo[2];
         assert.equal(debteeName, "giwoong", "Invoice issuer giwoong is not a debtee of first invoice!");
 
+        var issuerAddress = issuer.account;
+        var issuerBalanceBeforeTx = await web3.fromWei(web3.eth.getBalance(issuerAddress).toNumber(),'ether');
+        
         try {
-            await invoicesContract
-                .fundInvoice
-                .sendTransaction(1, {
-                    from: debtee.account,
-                    value: etherAmount
-                });
+            await invoicesContract.fundInvoice.sendTransaction(1, { from: debtee.account, value: etherAmount});
         } catch (error) {
             console.log(error)
         }
+
+        issuerBalanceAfterTx = await web3.fromWei(web3.eth.getBalance(issuerAddress).toNumber(),'ether');
+        assert.equal(issuerBalanceAfterTx,parseFloat(issuerBalanceBeforeTx)+2,"Balance of issuer not changed after fund Invoice!")
 
         invoiceInfo = await invoicesContract.getInvoice(1);
         debteeName = invoiceInfo[2];
@@ -132,21 +133,22 @@ contract('Invoices',function(accounts){
     })
 
     it('Debtor clay pays debtee meit for the first invoice', async function () {
-        var etherAmount = 10;
+        var etherAmount = 2*10**18;
         var invoiceInfo = await invoicesContract.getInvoice(1);
         var paidStatus = invoiceInfo[7];
         assert.equal(paidStatus, false, "Clay didn't pay Meit, so its an error");
 
+        var debteeAddress = debtee.account;
+        var debteeBalanceBeforeTx = await web3.fromWei(web3.eth.getBalance(debteeAddress).toNumber(),'ether');
+
         try {
-            await invoicesContract
-                .payInvoice
-                .sendTransaction(1, {
-                    from: debtor.account,
-                    value: etherAmount
-                });
+            await invoicesContract.payInvoice.sendTransaction(1, { from: debtor.account, value: etherAmount });
         } catch (error) {
             console.log(error)
         }
+
+        var debteeBalanceAfterTx = await web3.fromWei(web3.eth.getBalance(debteeAddress).toNumber(),'ether');
+        assert.equal(debteeBalanceAfterTx, parseFloat(debteeBalanceBeforeTx) + 2, "Balance of debtee not changed after getting paid!")
 
         invoiceInfo = await invoicesContract.getInvoice(1);
         paidStatus = invoiceInfo[7];
@@ -155,7 +157,7 @@ contract('Invoices',function(accounts){
 
 
     it('Clay fails to pay meit, as clay alreay paid debtee meit for the second invoice', async function () {
-        var etherAmount = 5;
+        var etherAmount = 10**18;
         var invoiceInfo = await invoicesContract.getInvoice(2);
         var paidStatus = invoiceInfo[7];
         assert.equal(paidStatus, true, "Clay paid meit already!");
