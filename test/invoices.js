@@ -131,5 +131,28 @@ contract('Invoices',function(accounts){
         assert.equal(debteeName, "meit", "Invoice funder Meit doesn't become a new funder!")
     })
 
+    it('Debtor clay pays debtee meit for the first invoice', async function () {
+        var etherAmount = 10;
+        var invoiceInfo = await invoicesContract.getInvoice(1);
+        var paidStatus = invoiceInfo[7];
+        assert.equal(paidStatus, false, "Clay didn't pay Meit, so its an error");
+
+        try {
+            await invoicesContract
+                .payInvoice
+                .sendTransaction(1, {
+                    from: debtor.account,
+                    value: etherAmount
+                });
+        } catch (error) {
+            console.log(error)
+        }
+
+        invoiceInfo = await invoicesContract.getInvoice(1);
+        paidStatus = invoiceInfo[7];
+        assert.equal(paidStatus, true, "Clay paid Meit already!");
+    })
+
+
 
 })
