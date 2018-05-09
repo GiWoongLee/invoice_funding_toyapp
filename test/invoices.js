@@ -109,5 +109,27 @@ contract('Invoices',function(accounts){
 
     })
 
+    it('Meit funds ethers on first invoice on behalf of giwoong, who is issuer', async function () { // issuer != debtee
+        var etherAmount = 10;
+        var invoiceInfo = await invoicesContract.getInvoice(1);
+        var debteeName = invoiceInfo[2];
+        assert.equal(debteeName, "giwoong", "Invoice issuer giwoong is not a debtee of first invoice!");
+
+        try {
+            await invoicesContract
+                .fundInvoice
+                .sendTransaction(1, {
+                    from: debtee.account,
+                    value: etherAmount
+                });
+        } catch (error) {
+            console.log(error)
+        }
+
+        invoiceInfo = await invoicesContract.getInvoice(1);
+        debteeName = invoiceInfo[2];
+        assert.equal(debteeName, "meit", "Invoice funder Meit doesn't become a new funder!")
+    })
+
 
 })
