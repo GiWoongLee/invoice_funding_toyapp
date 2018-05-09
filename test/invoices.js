@@ -154,5 +154,11 @@ contract('Invoices',function(accounts){
     })
 
 
+    it('Clay fails to pay meit, as clay alreay paid debtee meit for the second invoice', async function () {
+        var etherAmount = 5;
+        var invoiceInfo = await invoicesContract.getInvoice(2);
+        var paidStatus = invoiceInfo[7];
+        assert.equal(paidStatus, true, "Clay paid meit already!");
+    })
 
 })
