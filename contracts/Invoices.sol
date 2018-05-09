@@ -62,7 +62,7 @@ contract Invoices{
         require(users[_debtee].exists == true); // check debtee exists
         require(users[_debtor].exists == true); // check debtor exists
         bool _exists = true;
-        invoices[_number] = invoice(_number,_exists,users[_issuer],users[_debtee],users[_debtee],_dollarAmount,_etherAmount,_timestamp,_paid);
+        invoices[_number] = invoice(_number,_exists,users[_issuer],users[_debtee],users[_debtor],_dollarAmount,_etherAmount,_timestamp,_paid);
     }
 
     // Function called on searchInvoice
@@ -79,17 +79,7 @@ contract Invoices{
         // Check buyer sent ethers to debtee. Check payment amount same as etherAmount or dollarAmount
         inv.debtee = buyer; /// change debtee to buyer
     }
-
-    // Overload funciton when buyer sells invoice through admin node
-    function sellInvoice(uint256 _number, address _buyer) public onlyAdmin{
-        require(invoices[_number].exists == true); //check invoice exists
-        require(users[_buyer].exists == true);  // check user exist
-        invoice storage inv = invoices[_number];
-        user storage buyer = users[_buyer];
-        // Check buyer sent ethers to debtee. Check payment amount same as etherAmount or dollarAmount
-        inv.debtee = buyer; /// change debtee to buyer
-    }
-
+    
     // Function called on FundNow 
     function fundInvoice(uint256 _number) public payable{ 
         require(invoices[_number].exists == true); // check invoice exists
@@ -100,33 +90,12 @@ contract Invoices{
         inv.debtee = users[msg.sender]; // change debtee to msg.sender
     }
 
-    // Overload funciton when funder pays through admin node
-    function fundInvoice(uint256 _number, address funder) public payable onlyAdmin{
-        require(invoices[_number].exists == true); // check invoice exists
-        require(users[funder].exists == true); // check user exists
-        invoice storage inv = invoices[_number];
-        require(inv.paid != true);
-        require(msg.value == inv.etherAmount); // check payment amount of ether same as invoice etherAmount
-        inv.debtee = users[funder]; // change debtee to msg.sender
-    }
-
     // Function when someone pay invoice 
     function payInvoice(uint256 _number) public payable onlyDebtor(_number) {  
         invoice storage inv = invoices[_number];
         require(inv.paid != true);
         require(msg.value == inv.etherAmount); // check payment amount of ether same as invoice etherAmount
-        inv.paid == true;
-    }
-
-    // Overload Function when debtee pays through admin node
-    function payInvoice(uint256 _number,address _debtor) public payable onlyAdmin {  
-        require(invoices[_number].exists == true); //check invoice exists
-        require(users[_debtor].exists == true);  // check user exist
-        require(_debtor == invoices[_number].debtor.account); // check _debtor is the debtor of a invoice
-        invoice storage inv = invoices[_number];
-        require(inv.paid != true);
-        require(msg.value == inv.etherAmount); // check payment amount of ether same as invoice etherAmount
-        inv.paid == true;
+        inv.paid = true;
     }
 
 }
