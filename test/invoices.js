@@ -66,4 +66,48 @@ contract('Invoices',function(accounts){
 
     })
 
+
+    it('Issuer created two invoices', async function () {
+        var invoices = {
+            first: {
+                number: 1,
+                issuer: issuer.account,
+                debtee: issuer.account, // On creation, issuer == debtee
+                debtor: debtor.account,
+                dollarAmount: 1000,
+                etherAmount: 10,
+                timestamp: 1525832164563,
+                paid: false
+            },
+            second: {
+                number: 2,
+                issuer: debtee.account, // Debtee issued invoice
+                debtee: debtee.account,
+                debtor: debtor.account,
+                dollarAmount: 500,
+                etherAmount: 5,
+                timestamp: 1525832164568,
+                paid: true
+            }
+        }
+
+        try {
+            await invoicesContract.createInvoice(invoices.first.number, invoices.first.issuer, invoices.first.debtee, invoices.first.debtor, invoices.first.dollarAmount, invoices.first.etherAmount, invoices.first.timestamp, invoices.first.paid);
+            await invoicesContract.createInvoice(invoices.second.number, invoices.second.issuer, invoices.second.debtee, invoices.second.debtor, invoices.second.dollarAmount, invoices.second.etherAmount, invoices.second.timestamp, invoices.second.paid);
+        } catch (error) {
+            console.log(error)
+        }
+
+        Promise.all([invoicesContract.getInvoice(1), invoicesContract.getInvoice(2)])
+            .then(function (invoices) {
+                assert.equal(invoices[0][1], "giwoong", "Invoice issuer is not same as created!")
+                assert.equal(invoices[1][1], "meit", "Invoice issuer is not same as created!")
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+
+    })
+
+
 })
