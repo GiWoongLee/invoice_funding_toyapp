@@ -17,8 +17,8 @@ contract Invoices{
     struct user{
         address account;
         bool exists;
-        bytes32 name;
-        bytes32 email;
+        string name;
+        string email;
     }
 
     address public admin;
@@ -49,7 +49,7 @@ contract Invoices{
         _;
     }
 
-    function createUser(address _account, bytes32 _name, bytes32 _email) public onlyAdmin{
+    function createUser(address _account, string _name, string _email) public onlyAdmin{
         require(users[_account].exists != true); // prohibit duplicate account
         bool _exists = true;
         users[_account] = user(_account,_exists,_name,_email);
@@ -66,7 +66,7 @@ contract Invoices{
     }
 
     // Function called on searchInvoice
-    function getInvoice(uint256 _number) public view returns (uint256 number, bytes32 issuerName, bytes32 debteeName, bytes32 debtorName, uint256 dollarAmount, uint256 etherAmount, uint256 timestamp, bool paid){
+    function getInvoice(uint256 _number) public view returns (uint256 number, string issuerName, string debteeName, string debtorName, uint256 dollarAmount, uint256 etherAmount, uint256 timestamp, bool paid){
         require(invoices[_number].exists == true); // check invoice exists
         invoice storage inv = invoices[_number];
         return (inv.number, inv.issuer.name, inv.debtee.name, inv.debtor.name, inv.dollarAmount, inv.etherAmount, inv.timestamp, inv.paid); 
